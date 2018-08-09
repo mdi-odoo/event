@@ -49,3 +49,23 @@ class EventEvent(models.Model):
             }
         if warning:
             return {'warning': warning}
+
+    @api.onchange('organizer_id', 'date_begin', 'date_end')
+    def _onchange_organizer_id(self):
+
+        warning = {}
+        domain = [
+            ('organizer_id', '=', self.organizer_id.id),
+            '|', '|',
+            '&', ('date_begin', '<=', self.date_begin), ('date_end', '>=', self.date_begin),
+            '&', ('date_begin', '<=', self.date_end), ('date_end', '>=', self.date_end),
+            '&', ('date_begin', '<=', self.date_begin), ('date_end', '>=', self.date_end),
+        ]
+
+        if self.search_count(domain) > 0:
+            warning = {
+                    'title': 'Error',
+                    'message': 'This Organizer is already busy for this time.',
+            }
+        if warning:
+            return {'warning': warning}
